@@ -10,8 +10,11 @@ import Auth from "./pages/Auth";
 import SeizureDiary from "./pages/SeizureDiary";
 import NewSeizure from "./pages/NewSeizure";
 import Medications from "./pages/Medications";
+import NewMedication from "./pages/NewMedication";
 import Emergency from "./pages/Emergency";
 import Chat from "./pages/Chat";
+import Reports from "./pages/Reports";
+import Education from "./pages/Education";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -66,6 +69,9 @@ const App = () => (
             <Route path="/diary" element={<ProtectedRoute><SeizureDiary /></ProtectedRoute>} />
             <Route path="/diary/new" element={<ProtectedRoute><NewSeizure /></ProtectedRoute>} />
             <Route path="/medications" element={<ProtectedRoute><Medications /></ProtectedRoute>} />
+            <Route path="/medications/new" element={<ProtectedRoute><NewMedication /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+            <Route path="/education" element={<ProtectedRoute><Education /></ProtectedRoute>} />
             <Route path="/emergency" element={<ProtectedRoute><Emergency /></ProtectedRoute>} />
             <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
