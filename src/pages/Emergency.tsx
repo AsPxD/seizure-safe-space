@@ -1,8 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   Phone, 
   MapPin, 
@@ -11,12 +17,62 @@ import {
   Clock, 
   User, 
   FileText,
-  Navigation
+  Navigation,
+  Plus,
+  Edit,
+  Trash2
 } from 'lucide-react';
 
+interface EmergencyContact {
+  id: string;
+  name: string;
+  phone: string;
+  relationship: string;
+  is_primary: boolean;
+}
+
 export default function Emergency() {
+  const { user } = useAuth();
   const [sosPressed, setSosPressed] = useState(false);
   const [location, setLocation] = useState<string>('Locating...');
+  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState<EmergencyContact | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    relationship: '',
+    is_primary: false
+  });
+
+  useEffect(() => {
+    if (user) {
+      loadEmergencyContacts();
+    }
+  }, [user]);
+
+  const loadEmergencyContacts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('emergency_contacts')
+        .select('*')
+        .order('is_primary', { ascending: false })
+        .order('created_at');
+
+      if (error) throw error;
+      setEmergencyContacts(data || []);
+    } catch (error) {
+      console.error('Error loading emergency contacts:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load emergency contacts.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSOSPress = async () => {
     setSosPressed(true);
@@ -39,11 +95,106 @@ export default function Emergency() {
     }, 5000);
   };
 
-  const emergencyContacts = [
-    { name: 'Emergency Services', number: '911', type: 'emergency' },
-    { name: 'Dr. Smith', number: '(555) 123-4567', type: 'doctor' },
-    { name: 'John Doe (Emergency Contact)', number: '(555) 987-6543', type: 'personal' },
-  ];
+  const handleSaveContact = async () => {
+    if (!user) return;
+
+    try {
+      if (editingContact) {
+        const { error } = await supabase
+          .from('emergency_contacts')
+          .update({
+            name: formData.name,
+            phone: formData.phone,
+            relationship: formData.relationship,
+            is_primary: formData.is_primary,
+          })
+          .eq('id', editingContact.id);
+
+        if (error) throw error;
+        toast({
+          title: "Success",
+          description: "Emergency contact updated successfully.",
+        });
+      } else {
+        const { error } = await supabase
+          .from('emergency_contacts')
+          .insert({
+            user_id: user.id,
+            name: formData.name,
+            phone: formData.phone,
+            relationship: formData.relationship,
+            is_primary: formData.is_primary,
+          });
+
+        if (error) throw error;
+        toast({
+          title: "Success",
+          description: "Emergency contact added successfully.",
+        });
+      }
+
+      setIsDialogOpen(false);
+      setEditingContact(null);
+      setFormData({ name: '', phone: '', relationship: '', is_primary: false });
+      loadEmergencyContacts();
+    } catch (error) {
+      console.error('Error saving contact:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save emergency contact.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditContact = (contact: EmergencyContact) => {
+    setEditingContact(contact);
+    setFormData({
+      name: contact.name,
+      phone: contact.phone,
+      relationship: contact.relationship,
+      is_primary: contact.is_primary,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDeleteContact = async (contactId: string) => {
+    try {
+      const { error } = await supabase
+        .from('emergency_contacts')
+        .delete()
+        .eq('id', contactId);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Emergency contact deleted successfully.",
+      });
+      
+      loadEmergencyContacts();
+    } catch (error) {
+      console.error('Error deleting contact:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete emergency contact.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getContactIcon = (relationship: string) => {
+    switch (relationship.toLowerCase()) {
+      case 'emergency':
+      case 'emergency services':
+        return <AlertTriangle className="h-4 w-4 text-emergency" />;
+      case 'doctor':
+      case 'primary doctor':
+        return <Heart className="h-4 w-4 text-primary" />;
+      default:
+        return <User className="h-4 w-4 text-accent" />;
+    }
+  };
 
   const emergencyInstructions = [
     {
@@ -134,36 +285,143 @@ export default function Emergency() {
       {/* Emergency Contacts */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Phone className="h-5 w-5" />
-            <span>Emergency Contacts</span>
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center space-x-2">
+              <Phone className="h-5 w-5" />
+              <span>Emergency Contacts</span>
+            </CardTitle>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setEditingContact(null);
+                    setFormData({ name: '', phone: '', relationship: '', is_primary: false });
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Contact
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingContact ? 'Edit Emergency Contact' : 'Add Emergency Contact'}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Enter contact name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="Enter phone number"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="relationship">Relationship</Label>
+                    <Select
+                      value={formData.relationship}
+                      onValueChange={(value) => setFormData({ ...formData, relationship: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select relationship" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Emergency Services">Emergency Services</SelectItem>
+                        <SelectItem value="Primary Doctor">Primary Doctor</SelectItem>
+                        <SelectItem value="Family Member">Family Member</SelectItem>
+                        <SelectItem value="Friend">Friend</SelectItem>
+                        <SelectItem value="Caregiver">Caregiver</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      id="primary"
+                      type="checkbox"
+                      checked={formData.is_primary}
+                      onChange={(e) => setFormData({ ...formData, is_primary: e.target.checked })}
+                    />
+                    <Label htmlFor="primary">Primary emergency contact</Label>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSaveContact}>
+                      {editingContact ? 'Update' : 'Add'} Contact
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {emergencyContacts.map((contact, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-md">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  {contact.type === 'emergency' ? (
-                    <AlertTriangle className="h-4 w-4 text-emergency" />
-                  ) : contact.type === 'doctor' ? (
-                    <Heart className="h-4 w-4 text-primary" />
-                  ) : (
-                    <User className="h-4 w-4 text-accent" />
-                  )}
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-pulse text-muted-foreground">Loading contacts...</div>
+            </div>
+          ) : emergencyContacts.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No emergency contacts added yet.
+            </div>
+          ) : (
+            emergencyContacts.map((contact) => (
+              <div key={contact.id} className="flex items-center justify-between p-3 bg-muted rounded-md">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    {getContactIcon(contact.relationship)}
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <p className="font-medium text-sm">{contact.name}</p>
+                      {contact.is_primary && (
+                        <Badge variant="secondary" className="text-xs">Primary</Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{contact.phone}</p>
+                    <p className="text-xs text-muted-foreground">{contact.relationship}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium text-sm">{contact.name}</p>
-                  <p className="text-xs text-muted-foreground">{contact.number}</p>
+                <div className="flex items-center space-x-1">
+                  <Button size="sm" variant="outline" asChild>
+                    <a href={`tel:${contact.phone}`}>
+                      <Phone className="h-4 w-4" />
+                    </a>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleEditContact(contact)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleDeleteContact(contact.id)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-              <Button size="sm" variant="outline" asChild>
-                <a href={`tel:${contact.number}`}>
-                  <Phone className="h-4 w-4" />
-                </a>
-              </Button>
-            </div>
-          ))}
+            ))
+          )}
         </CardContent>
       </Card>
 

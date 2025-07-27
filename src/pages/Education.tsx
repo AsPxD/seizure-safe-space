@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, BookOpen, Clock, Star, Play, ExternalLink } from 'lucide-react';
+import { Search, BookOpen, Clock, Star, Play, ExternalLink, Globe, Eye } from 'lucide-react';
 
 interface EducationContent {
   id: string;
@@ -21,18 +22,63 @@ interface EducationContent {
 export default function Education() {
   const [content, setContent] = useState<EducationContent[]>([]);
   const [filteredContent, setFilteredContent] = useState<EducationContent[]>([]);
+  const [liveArticles, setLiveArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  const [selectedArticle, setSelectedArticle] = useState<any>(null);
+  const [isArticleDialogOpen, setIsArticleDialogOpen] = useState(false);
 
   useEffect(() => {
     loadEducationContent();
+    fetchLiveSeizureArticles();
   }, []);
 
   useEffect(() => {
     filterContent();
   }, [content, searchQuery, selectedCategory]);
+
+  const fetchLiveSeizureArticles = async () => {
+    try {
+      // Mock API call for demonstration - replace with real search API
+      const mockArticles = [
+        {
+          id: 'live-1',
+          title: 'Latest Research on Epilepsy Treatment',
+          excerpt: 'New breakthrough in seizure prediction using AI technology...',
+          url: 'https://www.epilepsy.com/article/2024/new-research',
+          source: 'Epilepsy Foundation',
+          publishedDate: '2024-01-15'
+        },
+        {
+          id: 'live-2', 
+          title: 'Managing Seizures in Daily Life',
+          excerpt: 'Tips and strategies for living well with epilepsy...',
+          url: 'https://www.mayoclinic.org/diseases-conditions/epilepsy',
+          source: 'Mayo Clinic',
+          publishedDate: '2024-01-10'
+        },
+        {
+          id: 'live-3',
+          title: 'Seizure First Aid Guidelines 2024',
+          excerpt: 'Updated guidelines for providing first aid during seizures...',
+          url: 'https://www.cdc.gov/epilepsy/about/first-aid.htm',
+          source: 'CDC',
+          publishedDate: '2024-01-05'
+        }
+      ];
+      
+      setLiveArticles(mockArticles);
+    } catch (error) {
+      console.error('Error fetching live articles:', error);
+    }
+  };
+
+  const openArticleView = (article: any) => {
+    setSelectedArticle(article);
+    setIsArticleDialogOpen(true);
+  };
 
   const loadEducationContent = async () => {
     try {
@@ -146,6 +192,50 @@ export default function Education() {
           ))}
         </div>
       </div>
+
+      {/* Live Articles */}
+      {liveArticles.length > 0 && selectedCategory === 'all' && !searchQuery && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold flex items-center">
+            <Globe className="h-5 w-5 mr-2 text-accent" />
+            Latest Seizure & Epilepsy Articles
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {liveArticles.map((article) => (
+              <Card key={article.id} className="animate-gentle hover:shadow-md transition-shadow border-accent/20">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <Badge className="bg-accent text-accent-foreground" variant="secondary">
+                      <Globe className="h-3 w-3 mr-1" />
+                      Live
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">{article.source}</span>
+                  </div>
+                  <CardTitle className="text-base leading-tight">{article.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                    {article.excerpt}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(article.publishedDate).toLocaleDateString()}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openArticleView(article)}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      View
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Featured Content */}
       {featuredContent.length > 0 && selectedCategory === 'all' && !searchQuery && (
@@ -275,6 +365,46 @@ export default function Education() {
           </div>
         )}
       </div>
+
+      {/* Article Dialog */}
+      <Dialog open={isArticleDialogOpen} onOpenChange={setIsArticleDialogOpen}>
+        <DialogContent className="max-w-4xl h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Globe className="h-5 w-5" />
+              <span>Article Viewer</span>
+            </DialogTitle>
+          </DialogHeader>
+          {selectedArticle && (
+            <div className="flex-1 overflow-hidden">
+              <div className="mb-4 p-4 bg-muted rounded-lg">
+                <h3 className="font-semibold mb-2">{selectedArticle.title}</h3>
+                <p className="text-sm text-muted-foreground mb-2">{selectedArticle.excerpt}</p>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Source: {selectedArticle.source}</span>
+                  <span>Published: {new Date(selectedArticle.publishedDate).toLocaleDateString()}</span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2"
+                  asChild
+                >
+                  <a href={selectedArticle.url} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Open Original
+                  </a>
+                </Button>
+              </div>
+              <iframe 
+                src={selectedArticle.url}
+                className="w-full h-[calc(100%-120px)] border rounded-lg"
+                title={selectedArticle.title}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
