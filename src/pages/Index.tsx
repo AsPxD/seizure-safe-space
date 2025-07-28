@@ -44,10 +44,10 @@ const Index = () => {
           </Link>
 
           <Link to="/emergency">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-destructive/20 bg-destructive/5 hover:bg-destructive/10">
               <CardHeader className="text-center">
-                <Heart className="h-12 w-12 mx-auto mb-2 text-destructive" />
-                <CardTitle>Emergency</CardTitle>
+                <Heart className="h-12 w-12 mx-auto mb-2 text-destructive animate-pulse" />
+                <CardTitle className="text-destructive">Emergency Contacts</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground text-center">Emergency contacts & info</p>
@@ -79,14 +79,14 @@ const Index = () => {
             </Card>
           </Link>
 
-          <Link to="/chat">
+          <Link to="/vault">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardHeader className="text-center">
-                <MessageCircle className="h-12 w-12 mx-auto mb-2 text-primary" />
-                <CardTitle>Healthcare Chat</CardTitle>
+                <FileText className="h-12 w-12 mx-auto mb-2 text-primary" />
+                <CardTitle>Medical Vault</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground text-center">Chat with doctor or AI</p>
+                <p className="text-muted-foreground text-center">Secure document storage</p>
               </CardContent>
             </Card>
           </Link>
