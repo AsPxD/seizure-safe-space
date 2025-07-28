@@ -79,6 +79,20 @@ const Index = () => {
             </Card>
           </Link>
 
+          <Link to="/chat">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardHeader className="text-center">
+                <MessageCircle className="h-12 w-12 mx-auto mb-2 text-primary" />
+                <CardTitle>Healthcare Chat</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground text-center">Chat with doctor or AI</p>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Link to="/vault">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardHeader className="text-center">
@@ -102,6 +116,34 @@ const Index = () => {
               <Bot className="h-8 w-8" />
             </Button>
           </Link>
+        </div>
+
+        {/* Test Notification Button (Development Only) */}
+        <div className="fixed bottom-6 left-6">
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => {
+              // Test notification
+              if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('Medicine Reminder Test', {
+                  body: 'This is a test notification for medicine reminders',
+                  icon: '/favicon.ico',
+                });
+              } else if ('Notification' in window) {
+                Notification.requestPermission().then(permission => {
+                  if (permission === 'granted') {
+                    new Notification('Medicine Reminder Test', {
+                      body: 'This is a test notification for medicine reminders',
+                      icon: '/favicon.ico',
+                    });
+                  }
+                });
+              }
+            }}
+          >
+            Test Notification
+          </Button>
         </div>
       </div>
     </div>

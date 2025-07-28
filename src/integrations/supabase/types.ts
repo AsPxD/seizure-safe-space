@@ -110,6 +110,42 @@ export type Database = {
         }
         Relationships: []
       }
+      medical_documents: {
+        Row: {
+          created_at: string
+          file_data: string
+          file_size: number
+          file_type: string
+          id: string
+          name: string
+          updated_at: string
+          uploaded_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_data: string
+          file_size: number
+          file_type: string
+          id?: string
+          name: string
+          updated_at?: string
+          uploaded_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_data?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          uploaded_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       medication_logs: {
         Row: {
           created_at: string
@@ -251,6 +287,36 @@ export type Database = {
           updated_at?: string
           user_id?: string
           video_url?: string | null
+        }
+        Relationships: []
+      }
+      vault_sessions: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          otp_code: string
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          otp_code: string
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          otp_code?: string
+          user_id?: string
+          verified?: boolean | null
         }
         Relationships: []
       }

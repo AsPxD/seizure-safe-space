@@ -20,6 +20,7 @@ import Education from "./pages/Education";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
+import MedicalVault from "./pages/MedicalVault";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +86,7 @@ const App = () => (
             <Route path="/education" element={<ProtectedRoute><Education /></ProtectedRoute>} />
             <Route path="/emergency" element={<ProtectedRoute><Emergency /></ProtectedRoute>} />
             <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+            <Route path="/vault" element={<ProtectedRoute><MedicalVault /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
