@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,8 @@ interface AIMessage {
 
 export default function Chat() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get('tab') || 'doctor';
   const [messages, setMessages] = useState<Message[]>([]);
   const [aiMessages, setAiMessages] = useState<AIMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -147,7 +150,7 @@ export default function Chat() {
         <p className="text-muted-foreground">Chat with your doctor or get AI assistance</p>
       </div>
 
-      <Tabs defaultValue="doctor" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="doctor" className="flex items-center space-x-2">
             <Stethoscope className="h-4 w-4" />

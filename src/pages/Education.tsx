@@ -41,37 +41,70 @@ export default function Education() {
 
   const fetchLiveSeizureArticles = async () => {
     try {
-      // Mock API call for demonstration - replace with real search API
+      setLoading(true);
+      // Using NewsAPI for live articles about seizures and epilepsy
+      const response = await fetch(
+        `https://newsapi.org/v2/everything?q=epilepsy+OR+seizures+OR+neurology&language=en&sortBy=publishedAt&pageSize=6&apiKey=demo`
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        const formattedArticles = data.articles?.slice(0, 6).map((article: any, index: number) => ({
+          id: `live-${index}`,
+          title: article.title,
+          excerpt: article.description || 'Read more about this health topic...',
+          url: article.url,
+          source: article.source.name,
+          publishedDate: article.publishedAt,
+          image: article.urlToImage
+        })) || [];
+        setLiveArticles(formattedArticles);
+      } else {
+        // Fallback to static articles if API fails
+        const mockArticles = [
+          {
+            id: 'live-1',
+            title: 'Latest Research on Epilepsy Treatment',
+            excerpt: 'New breakthrough in seizure prediction using AI technology...',
+            url: 'https://www.epilepsy.com/article/2024/new-research',
+            source: 'Epilepsy Foundation',
+            publishedDate: '2024-01-15'
+          },
+          {
+            id: 'live-2', 
+            title: 'Managing Seizures in Daily Life',
+            excerpt: 'Tips and strategies for living well with epilepsy...',
+            url: 'https://www.mayoclinic.org/diseases-conditions/epilepsy',
+            source: 'Mayo Clinic',
+            publishedDate: '2024-01-10'
+          },
+          {
+            id: 'live-3',
+            title: 'Seizure First Aid Guidelines 2024',
+            excerpt: 'Updated guidelines for providing first aid during seizures...',
+            url: 'https://www.cdc.gov/epilepsy/about/first-aid.htm',
+            source: 'CDC',
+            publishedDate: '2024-01-05'
+          }
+        ];
+        setLiveArticles(mockArticles);
+      }
+    } catch (error) {
+      console.error('Error fetching live articles:', error);
+      // Use fallback articles on error
       const mockArticles = [
         {
           id: 'live-1',
-          title: 'Latest Research on Epilepsy Treatment',
-          excerpt: 'New breakthrough in seizure prediction using AI technology...',
-          url: 'https://www.epilepsy.com/article/2024/new-research',
+          title: 'Understanding Seizures and Epilepsy',
+          excerpt: 'Comprehensive guide to understanding different types of seizures...',
+          url: 'https://www.epilepsy.com/what-is-epilepsy/seizure-types',
           source: 'Epilepsy Foundation',
           publishedDate: '2024-01-15'
-        },
-        {
-          id: 'live-2', 
-          title: 'Managing Seizures in Daily Life',
-          excerpt: 'Tips and strategies for living well with epilepsy...',
-          url: 'https://www.mayoclinic.org/diseases-conditions/epilepsy',
-          source: 'Mayo Clinic',
-          publishedDate: '2024-01-10'
-        },
-        {
-          id: 'live-3',
-          title: 'Seizure First Aid Guidelines 2024',
-          excerpt: 'Updated guidelines for providing first aid during seizures...',
-          url: 'https://www.cdc.gov/epilepsy/about/first-aid.htm',
-          source: 'CDC',
-          publishedDate: '2024-01-05'
         }
       ];
-      
       setLiveArticles(mockArticles);
-    } catch (error) {
-      console.error('Error fetching live articles:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -203,6 +236,18 @@ export default function Education() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {liveArticles.map((article) => (
               <Card key={article.id} className="animate-gentle hover:shadow-md transition-shadow border-accent/20">
+                {article.image && (
+                  <div className="relative h-32 overflow-hidden rounded-t-lg">
+                    <img 
+                      src={article.image} 
+                      alt={article.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <Badge className="bg-accent text-accent-foreground" variant="secondary">
