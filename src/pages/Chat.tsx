@@ -308,7 +308,7 @@ export default function Chat() {
                         </span>
                       </div>
                       {message.sender === 'ai' ? (
-                        <div className="text-sm prose prose-sm max-w-none prose-invert">
+                        <div className="text-sm prose prose-sm max-w-none text-foreground">
                           <ReactMarkdown>{message.content}</ReactMarkdown>
                         </div>
                       ) : (

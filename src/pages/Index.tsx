@@ -79,20 +79,6 @@ const Index = () => {
             </Card>
           </Link>
 
-          <Link to="/chat">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader className="text-center">
-                <MessageCircle className="h-12 w-12 mx-auto mb-2 text-primary" />
-                <CardTitle>Healthcare Chat</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-center">Chat with doctor or AI</p>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Link to="/vault">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardHeader className="text-center">
